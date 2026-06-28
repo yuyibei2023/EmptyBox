@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-immersive-translate-page-theme="light" class=""><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>空的箱子_的模型参考</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <style>
+        /* ===== CSS 变量 & 主题 ===== */
+        :root {
+            --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #e9edf5 100%);
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --card-border: rgba(255, 255, 255, 0.7);
+            --card-shadow: 0 20px 35px rgba(0, 0, 0, 0.05), 0 8px 18px rgba(0, 20, 40, 0.08);
+            --card-hover-shadow: 0 25px 40px rgba(0, 0, 0, 0.12), 0 10px 20px rgba(0, 30, 60, 0.15);
+            --icon-wrapper-bg: linear-gradient(145deg, #ffffff 0%, #f2f5fc 100%);
+            --icon-wrapper-hover-bg: linear-gradient(145deg, #f0f4ff 0%, #e6ecf8 100%);
+            --icon-color: #2c3e50;
+            --icon-hover-color: #1e2b39;
+            --title-color: #1a2634;
+            --date-color: #5e6f82;
+            --badge-bg: rgba(59, 113, 202, 0.08);
+            --badge-color: #2c5282;
+            --heading-color: #0f172a;
+            --lead-color: #475569;
+            --text-muted-color: #6c757d;
+            --footer-border: rgba(0, 0, 0, 0.08);
+            --toggle-bg: #e9edf5;
+            --toggle-dot: #ffffff;
+            --toggle-border: rgba(0, 0, 0, 0.1);
+            --toggle-icon-sun: #f59e0b;
+            --toggle-icon-moon: #6366f1;
+            --toast-bg: rgba(15, 23, 42, 0.92);
+            --toast-text: #f1f5f9;
+        }
+
+        body.dark-mode {
+            --bg-gradient: linear-gradient(135deg, #1a1f2e 0%, #0f131f 100%);
+            --card-bg: rgba(30, 35, 50, 0.8);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --card-shadow: 0 20px 35px rgba(0, 0, 0, 0.4), 0 8px 18px rgba(0, 0, 0, 0.5);
+            --card-hover-shadow: 0 25px 40px rgba(0, 0, 0, 0.6), 0 10px 20px rgba(0, 0, 0, 0.7);
+            --icon-wrapper-bg: linear-gradient(145deg, #2a3142 0%, #232839 100%);
+            --icon-wrapper-hover-bg: linear-gradient(145deg, #323a4e 0%, #2a2f42 100%);
+            --icon-color: #cbd5e1;
+            --icon-hover-color: #e2e8f0;
+            --title-color: #f1f5f9;
+            --date-color: #94a3b8;
+            --badge-bg: rgba(99, 138, 220, 0.15);
+            --badge-color: #a5b4fc;
+            --heading-color: #f8fafc;
+            --lead-color: #cbd5e1;
+            --text-muted-color: #94a3b8;
+            --footer-border: rgba(255, 255, 255, 0.08);
+            --toggle-bg: #2d3548;
+            --toggle-dot: #1e2335;
+            --toggle-border: rgba(255, 255, 255, 0.2);
+            --toggle-icon-sun: #fbbf24;
+            --toggle-icon-moon: #818cf8;
+            --toast-bg: rgba(241, 245, 249, 0.92);
+            --toast-text: #0f172a;
+        }
+
+        /* ===== 全局 ===== */
+        body {
+            background: var(--bg-gradient);
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            min-height: 100vh;
+            padding: 2rem 0;
+            transition: background 0.3s ease;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        /* ===== 主题切换动画遮罩 ===== */
+        .theme-transition-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10000;
+        }
+        .theme-transition-overlay .circle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.08);
+            transform: scale(0);
+            transition: transform 0.65s cubic-bezier(0.25, 0.8, 0.25, 1.2);
+            width: 60px;
+            height: 60px;
+            margin-left: -30px;
+            margin-top: -30px;
+        }
+        body.dark-mode .theme-transition-overlay .circle {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .theme-transition-overlay.active .circle {
+            transform: scale(60);
+        }
+
+        /* ===== 主题开关 ===== */
+        .theme-switch-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .theme-switch {
+            position: relative;
+            width: 64px;
+            height: 32px;
+            background: var(--toggle-bg);
+            border-radius: 32px;
+            border: 1px solid var(--toggle-border);
+            cursor: pointer;
+            transition: background 0.3s, border-color 0.3s;
+            box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            padding: 3px;
+            box-sizing: border-box;
+        }
+        .theme-switch .dot {
+            width: 24px;
+            height: 24px;
+            background: var(--toggle-dot);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            transform: translateX(0);
+            color: var(--toggle-icon-sun);
+        }
+        body.dark-mode .theme-switch .dot {
+            transform: translateX(32px);
+            color: var(--toggle-icon-moon);
+        }
+
+        /* ===== 模型卡片 ===== */
+        .model-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 2rem;
+            border: 1px solid var(--card-border);
+            box-shadow: var(--card-shadow);
+            transition: transform 0.25s cubic-bezier(0.2, 0.9, 0.4, 1), box-shadow 0.3s ease, background 0.3s, border-color 0.3s;
+            overflow: hidden;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+        }
+        .model-card:hover {
+            transform: scale(0.96);
+            box-shadow: var(--card-hover-shadow);
+        }
+        .model-card.guide-card {
+            cursor: default;
+        }
+        .model-card.guide-card:hover {
+            transform: none;
+            box-shadow: var(--card-shadow);
+        }
+        .card-link-wrapper {
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .icon-wrapper {
+            background: var(--icon-wrapper-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .icon-wrapper.icon-font {
+            padding: 2rem 1rem 1.5rem;
+        }
+        .icon-wrapper.icon-image {
+            padding: 0;
+            height: 180px;
+        }
+        .model-card:hover .icon-wrapper {
+            background: var(--icon-wrapper-hover-bg);
+        }
+        .model-icon {
+            font-size: 4.5rem;
+            color: var(--icon-color);
+            transition: transform 0.25s ease, color 0.2s;
+            filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.1));
+        }
+        .model-card:hover .model-icon {
+            transform: scale(0.92);
+            color: var(--icon-hover-color);
+        }
+        .model-icon-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.25s ease;
+        }
+        .model-card:hover .model-icon-img {
+            transform: scale(1.05);
+        }
+        .card-body-custom {
+            padding: 1.25rem 1.5rem 1.5rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .model-title {
+            font-weight: 650;
+            font-size: 1.4rem;
+            letter-spacing: -0.2px;
+            color: var(--title-color);
+            margin-bottom: 0.35rem;
+            line-height: 1.3;
+        }
+        .model-date {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.9rem;
+            color: var(--date-color);
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        .update-badge {
+            background: var(--badge-bg);
+            color: var(--badge-color);
+            padding: 0.2rem 0.7rem;
+            border-radius: 2rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+        .page-header h1 {
+            font-weight: 700;
+            font-size: 2.6rem;
+            color: var(--heading-color);
+        }
+        .guide-text {
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        /* ===== Toast 通知 ===== */
+        .cache-toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--toast-bg);
+            color: var(--toast-text);
+            padding: 12px 20px;
+            border-radius: 16px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transform: translateY(20px);
+            opacity: 0;
+            transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            pointer-events: none;
+        }
+        .cache-toast.show {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .cache-toast .bi {
+            font-size: 1.3rem;
+        }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 576px) {
+            .icon-wrapper.icon-image {
+                height: 140px;
+            }
+            .model-icon {
+                font-size: 3.8rem;
+            }
+            .page-header h1 {
+                font-size: 2rem;
+            }
+            .cache-toast {
+                bottom: 16px;
+                right: 16px;
+                left: 16px;
+                font-size: 0.85rem;
+                padding: 10px 16px;
+                border-radius: 12px;
+                text-align: center;
+                justify-content: center;
+            }
+        }
+    </style>
+<style data-id="immersive-translate-input-injected-css"></style></head>
+<body class="" style="">
+    <!-- ===== 主题切换动画遮罩 ===== -->
+    <div class="theme-transition-overlay" id="transitionOverlay">
+        <div class="circle" id="transitionCircle" style="left: 988.267px; top: 48px; transform: scale(0);"></div>
+    </div>
+
+    <!-- ===== Toast 通知 ===== -->
+    <div class="cache-toast" id="cacheToast">
+        <i class="bi bi-journal-plus"></i>
+        <span id="toastMessage">📋 暂无数据，请添加模型</span>
+    </div>
+
+    <!-- ===== 主容器 ===== -->
+    <div class="container" style="">
+        <div class="page-header d-flex justify-content-between align-items-start flex-wrap" style="">
+            <div class="">
+                <h1 class=""><i class="bi bi-box-seam me-2" style="color: #3b71ca;"></i>视频模型仓库</h1>
+                <p class="lead" style="color: var(--lead-color); text-align: left; font-size: 20px; font-family: Arial, Helvetica, sans-serif; font-weight: normal;">按最近更新时间排列 · 点击卡片直接查看</p>
+            </div>
+            <div class="theme-switch-wrapper">
+                <span class="text-muted"></span>
+                <div class="theme-switch" id="themeToggle" tabindex="0">
+                    <div class="dot" id="switchDot">
+                        <i class="bi bi-sun-fill" id="switchIcon"></i>
+                    </div>
+                </div>
+                <span class="text-muted"></span>
+            </div>
+        </div>
+
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4" id="modelGrid">
+                        <div class="col">
+                            <div class="model-card guide-card">
+                                <div class="icon-wrapper icon-font">
+                                    <i class="bi bi-journal-plus model-icon" style="font-size:5rem;"></i>
+                                </div>
+                                <div class="card-body-custom text-center">
+                                    <h4 class="model-title mb-2">📋 操作指南</h4>
+                                    <p class="guide-text text-muted mb-1">
+                                        1. 打开 <strong>admin.html</strong> 管理后台
+                                    </p>
+                                    <p class="guide-text text-muted mb-1">
+                                        2. 添加模型并导出 <code class="">data.json</code>
+                                    </p>
+                                    <p class="guide-text text-muted mb-0">
+                                        3. 将导出的文件放在本页面同目录下
+                                    </p>
+                                    <p class="guide-text text-muted mt-2 small">
+                                        <i class="bi bi-arrow-repeat me-1"></i> 每次刷新自动获取最新数据
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+        <footer class="mt-5 pt-4 border-top text-center" style="border-top-color: var(--footer-border);">
+            <p class="text-muted"><i class="bi bi-info-circle me-1"></i> 模型所属b站UP 空的箱子_ 所有，严禁搬运！！！</p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js">
+    </script>
+    <script>
+        (function() {
+            'use strict';
+
+            // ============================================================
+            //  1. 常量 & 状态
+            // ============================================================
+            const STORAGE_KEY = 'modelData';
+            const DATA_FILE = './data.json';
+            const CACHE_BUST_KEY = '_t'; // 时间戳参数名
+
+            // ============================================================
+            //  2. Toast 通知
+            // ============================================================
+            const toastEl = document.getElementById('cacheToast');
+            const toastMsg = document.getElementById('toastMessage');
+            let toastTimer = null;
+
+            function showToast(msg, icon = 'bi-arrow-repeat') {
+                if (!toastEl) return;
+                toastMsg.textContent = msg;
+                toastEl.querySelector('.bi').className = 'bi ' + icon;
+                toastEl.classList.add('show');
+                clearTimeout(toastTimer);
+                toastTimer = setTimeout(() => {
+                    toastEl.classList.remove('show');
+                }, 2800);
+            }
+
+            // ============================================================
+            //  3. 数据加载 —— 自带「缓存粉碎」机制
+            // ============================================================
+            async function loadData() {
+                // 3.1 优先从服务器加载 data.json（带时间戳，强制绕过缓存）
+                try {
+                    const url = new URL(DATA_FILE, window.location.href);
+                    // ★★★ 核心：每次请求都追加不同的时间戳，彻底粉碎浏览器缓存 ★★★
+                    url.searchParams.set(CACHE_BUST_KEY, Date.now());
+
+                    const response = await fetch(url.toString(), {
+                        method: 'GET',
+                        cache: 'no-cache', // 强制不走 HTTP 缓存
+                        headers: {
+                            'Cache-Control': 'no-cache, no-store, must-revalidate',
+                            'Pragma': 'no-cache',
+                            'Expires': '0',
+                        },
+                    });
+
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                    const data = await response.json();
+
+                    if (Array.isArray(data)) {
+                        // 成功获取最新数据 → 存入 localStorage 作为备份
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                        showToast('✅ 已加载最新数据', 'bi-check-circle-fill');
+                        return data;
+                    } else {
+                        throw new Error('数据格式无效');
+                    }
+                } catch (err) {
+                    console.warn('[缓存粉碎] 从服务器加载失败，尝试 localStorage 备份:', err.message);
+
+                    // 3.2 服务器不可用 → 回退到 localStorage
+                    const stored = localStorage.getItem(STORAGE_KEY);
+                    if (stored) {
+                        try {
+                            const parsed = JSON.parse(stored);
+                            if (Array.isArray(parsed) && parsed.length) {
+                                showToast('📂 使用本地缓存（服务器数据暂不可用）', 'bi-database');
+                                return parsed;
+                            }
+                        } catch (_) { /* ignore */ }
+                    }
+
+                    // 3.3 完全无数据 → 返回空数组，显示引导
+                    showToast('📋 暂无数据，请添加模型', 'bi-journal-plus');
+                    return [];
+                }
+            }
+
+            // ============================================================
+            //  4. 图标渲染
+            // ============================================================
+            function isImageUrl(str) {
+                if (!str) return false;
+                return str.startsWith('http') || str.startsWith('data:image') || /\.(png|jpg|jpeg|gif|svg|webp)(\?.*)?$/i
+                    .test(str);
+            }
+
+            function renderIcon(iconValue) {
+                if (!iconValue) {
+                    return { html: '<i class="bi bi-box-seam model-icon"></i>', isImage: false };
+                }
+                if (isImageUrl(iconValue)) {
+                    return {
+                        html: `<img src="${iconValue}" alt="模型图标" class="model-icon-img" onerror="this.onerror=null; this.outerHTML='<i class=\\'bi bi-box-seam model-icon\\'></i>';">`,
+                        isImage: true
+                    };
+                } else {
+                    return { html: `<i class="bi ${iconValue} model-icon"></i>`, isImage: false };
+                }
+            }
+
+            // ============================================================
+            //  5. 渲染主界面
+            // ============================================================
+            async function renderModels() {
+                const grid = document.getElementById('modelGrid');
+                if (!grid) return;
+
+                const models = await loadData();
+
+                // 5.1 无数据 → 引导卡片
+                if (!models || models.length === 0) {
+                    grid.innerHTML = `
+                        <div class="col">
+                            <div class="model-card guide-card">
+                                <div class="icon-wrapper icon-font">
+                                    <i class="bi bi-journal-plus model-icon" style="font-size:5rem;"></i>
+                                </div>
+                                <div class="card-body-custom text-center">
+                                    <h4 class="model-title mb-2">📋 操作指南</h4>
+                                    <p class="guide-text text-muted mb-1">
+                                        1. 打开 <strong>admin.html</strong> 管理后台
+                                    </p>
+                                    <p class="guide-text text-muted mb-1">
+                                        2. 添加模型并导出 <code>data.json</code>
+                                    </p>
+                                    <p class="guide-text text-muted mb-0">
+                                        3. 将导出的文件放在本页面同目录下
+                                    </p>
+                                    <p class="guide-text text-muted mt-2 small">
+                                        <i class="bi bi-arrow-repeat me-1"></i> 每次刷新自动获取最新数据
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // 5.2 有数据 → 按日期排序
+                models.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                grid.innerHTML = models.map((m, index) => {
+                    const isLatest = index === 0;
+                    const iconResult = renderIcon(m.icon);
+                    const wrapperClass = iconResult.isImage ? 'icon-wrapper icon-image' : 'icon-wrapper icon-font';
+                    return `
+                        <div class="col">
+                            <div class="model-card">
+                                <a href="${m.url}" target="_blank" rel="noopener noreferrer" class="card-link-wrapper">
+                                    <div class="${wrapperClass}">
+                                        ${iconResult.html}
+                                    </div>
+                                    <div class="card-body-custom">
+                                        <div class="d-flex align-items-center flex-wrap">
+                                            <span class="model-title">${m.name}</span>
+                                            ${isLatest ? '<span class="update-badge"><i class="bi bi-lightning-charge-fill me-1"></i>最新</span>' : ''}
+                                        </div>
+                                        <div class="model-date">
+                                            <i class="bi bi-calendar-check"></i> ${m.date}
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                // 5.3 渲染完成后，额外提醒用户数据已刷新（如果 toast 还没显示过）
+                //    但 loadData 内部已经 showToast 了，这里不再重复。
+            }
+
+            // ============================================================
+            //  6. 主题切换（带波纹动画）
+            // ============================================================
+            const body = document.body;
+            const toggle = document.getElementById('themeToggle');
+            const switchIcon = document.getElementById('switchIcon');
+            const overlay = document.getElementById('transitionOverlay');
+            const circle = document.getElementById('transitionCircle');
+
+            function updateSwitchIcon() {
+                switchIcon.className = body.classList.contains('dark-mode') ? 'bi bi-moon-fill' : 'bi bi-sun-fill';
+            }
+
+            // 读取存储的主题
+            const savedTheme = localStorage.getItem('theme');
+            if ((savedTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')) === 'dark') {
+                body.classList.add('dark-mode');
+            }
+            updateSwitchIcon();
+
+            function transitionTheme() {
+                const rect = toggle.getBoundingClientRect();
+                circle.style.left = (rect.left + rect.width / 2) + 'px';
+                circle.style.top = (rect.top + rect.height / 2) + 'px';
+                circle.style.transform = 'scale(0)';
+                circle.offsetHeight; // 强制 reflow
+                overlay.classList.add('active');
+
+                setTimeout(() => {
+                    body.classList.toggle('dark-mode');
+                    updateSwitchIcon();
+                    localStorage.setItem('theme', body.classList.contains('dark-mode') ? 'dark' : 'light');
+                }, 150);
+
+                setTimeout(() => {
+                    overlay.classList.remove('active');
+                    circle.style.transform = 'scale(0)';
+                }, 800);
+            }
+
+            toggle.addEventListener('click', transitionTheme);
+            toggle.addEventListener('keydown', e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    transitionTheme();
+                }
+            });
+
+            // ============================================================
+            //  7. 启动：渲染 + 额外处理
+            // ============================================================
+            renderModels();
+
+            // 7.1 如果页面从「后退/前进」缓存中恢复，也强制刷新一次数据
+            //     但 loadData 本身已经带时间戳，所以无需额外操作。
+            //     不过我们可以监听 pageshow 事件，确保用户从 bfcache 返回时也能看到最新数据。
+            window.addEventListener('pageshow', function(event) {
+                if (event.persisted) {
+                    // 页面从 bfcache 恢复 → 重新加载数据（时间戳会变，自然绕过缓存）
+                    showToast('🔄 从缓存恢复，刷新数据', 'bi-arrow-repeat');
+                    renderModels();
+                }
+            });
+
+            // 7.2 暴露一个全局方法，方便开发者手动刷新（控制台调用 refreshData()）
+            window.refreshData = function() {
+                showToast('🔄 手动刷新中...', 'bi-arrow-repeat');
+                renderModels();
+            };
+
+            console.log('%c📦 视频模型仓库已启动', 'font-size:16px; font-weight:bold;');
+            console.log('%c💡 每次加载 data.json 都会带时间戳，强制绕过浏览器缓存', 'color:#3b71ca;');
+            console.log('%c🔧 在控制台执行 refreshData() 可手动刷新', 'color:#6c757d;');
+
+        })();
+    </script>
+
+</body></html>

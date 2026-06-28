@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>模型管理后台</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <style>
+    body { background: #f8fafc; padding: 2rem 0; }
+    .icon-preview { width: 40px; height: 40px; object-fit: contain; }
+    .icon-preview i { font-size: 1.8rem; }
+    .empty-hint { color: #999; font-style: italic; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h1><i class="bi bi-sliders me-2"></i>模型管理后台</h1>
+      <div class="d-flex gap-2">
+        <button class="btn btn-outline-primary" id="exportBtn"><i class="bi bi-download me-1"></i>导出 data.json</button>
+        <button class="btn btn-outline-secondary" id="importBtn"><i class="bi bi-upload me-1"></i>导入数据</button>
+        <input type="file" id="importFileInput" accept=".json" style="display:none;">
+      </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+      <div class="card-body">
+        <h5 class="card-title" id="formTitle">添加新模型</h5>
+        <form id="modelForm">
+          <input type="hidden" id="modelId">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label">模型名称</label>
+              <input type="text" class="form-control" id="modelName" required>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">更新日期</label>
+              <input type="date" class="form-control" id="modelDate" required>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">跳转链接 (URL)</label>
+              <input type="url" class="form-control" id="modelUrl" required placeholder="https://...">
+            </div>
+            <div class="col-md-2">
+              <label class="form-label">图标</label>
+              <div class="input-group">
+                <input type="text" class="form-control" id="modelIcon" placeholder="图片URL或图标类名" list="iconSuggestions">
+                <datalist id="iconSuggestions">
+                  <option value="bi-cpu">💻 赛博</option>
+                  <option value="bi-fire">🔥 火焰</option>
+                  <option value="bi-robot">🤖 机器人</option>
+                  <option value="bi-stars">✨ 星星</option>
+                  <option value="bi-gem">💎 宝石</option>
+                  <option value="bi-cloud-lightning-rain">🌩️ 风暴</option>
+                  <option value="bi-box-seam">📦 默认</option>
+                  <option value="bi-heart">❤️ 爱心</option>
+                  <option value="bi-rocket">🚀 火箭</option>
+                </datalist>
+              </div>
+              <small class="text-muted">图片URL或Bootstrap图标类名</small>
+            </div>
+          </div>
+          <div class="mt-3 d-flex gap-2">
+            <button type="submit" class="btn btn-primary" id="saveBtn">保存模型</button>
+            <button type="button" class="btn btn-outline-secondary" id="cancelBtn" style="display:none;">取消编辑</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title">现有模型列表</h5>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr>
+                <th>图标</th>
+                <th>名称</th>
+                <th>日期</th>
+                <th>链接</th>
+                <th style="width: 120px;">操作</th>
+              </tr>
+            </thead>
+            <tbody id="modelTableBody">
+              <tr id="emptyRow">
+                <td colspan="5" class="text-center empty-hint">暂无模型，请使用上方表单添加。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    (function() {
+      const STORAGE_KEY = 'modelData';
+      const DEFAULT_MODELS = [];   // 空初始数据
+
+      function getModels() {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          try { return JSON.parse(stored); } catch(e) {}
+        }
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_MODELS));
+        return [...DEFAULT_MODELS];
+      }
+
+      function saveModels(models) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(models));
+      }
+
+      let models = getModels();
+
+      const form = document.getElementById('modelForm');
+      const idInput = document.getElementById('modelId');
+      const nameInput = document.getElementById('modelName');
+      const dateInput = document.getElementById('modelDate');
+      const urlInput = document.getElementById('modelUrl');
+      const iconInput = document.getElementById('modelIcon');
+      const saveBtn = document.getElementById('saveBtn');
+      const cancelBtn = document.getElementById('cancelBtn');
+      const formTitle = document.getElementById('formTitle');
+      const tbody = document.getElementById('modelTableBody');
+      const emptyRow = document.getElementById('emptyRow');
+
+      function isImageUrl(str) {
+        return str && (str.startsWith('http') || str.startsWith('data:image') || /\.(png|jpg|jpeg|gif|svg|webp)(\?.*)?$/i.test(str));
+      }
+
+      function renderIconCell(iconValue) {
+        if (!iconValue) {
+          return '<i class="bi bi-box-seam" style="font-size:1.8rem;"></i>';
+        }
+        if (isImageUrl(iconValue)) {
+          return `<img src="${iconValue}" class="icon-preview" onerror="this.onerror=null; this.outerHTML='<i class=\\'bi bi-box-seam\\' style=\\'font-size:1.8rem;\\'></i>';">`;
+        } else {
+          return `<i class="bi ${iconValue}" style="font-size:1.8rem;"></i>`;
+        }
+      }
+
+      function renderTable() {
+        // 移除空状态行（如果存在）
+        if (emptyRow) emptyRow.style.display = 'none';
+        
+        if (models.length === 0) {
+          tbody.innerHTML = '';
+          const tr = document.createElement('tr');
+          tr.id = 'emptyRow';
+          tr.innerHTML = '<td colspan="5" class="text-center empty-hint">暂无模型，请使用上方表单添加。</td>';
+          tbody.appendChild(tr);
+          return;
+        }
+
+        models.sort((a, b) => new Date(b.date) - new Date(a.date));
+        tbody.innerHTML = models.map(m => `
+          <tr>
+            <td>${renderIconCell(m.icon)}</td>
+            <td>${m.name}</td>
+            <td>${m.date}</td>
+            <td><a href="${m.url}" target="_blank" class="text-truncate d-inline-block" style="max-width:200px;">${m.url}</a></td>
+            <td>
+              <button class="btn btn-sm btn-outline-warning edit-btn" data-id="${m.id}"><i class="bi bi-pencil"></i></button>
+              <button class="btn btn-sm btn-outline-danger delete-btn" data-id="${m.id}"><i class="bi bi-trash"></i></button>
+            </td>
+          </tr>
+        `).join('');
+      }
+
+      function resetForm() {
+        form.reset();
+        idInput.value = '';
+        formTitle.textContent = '添加新模型';
+        saveBtn.textContent = '保存模型';
+        cancelBtn.style.display = 'none';
+      }
+
+      function editModel(id) {
+        const model = models.find(m => m.id === id);
+        if (!model) return;
+        idInput.value = model.id;
+        nameInput.value = model.name;
+        dateInput.value = model.date;
+        urlInput.value = model.url;
+        iconInput.value = model.icon || '';
+        formTitle.textContent = '编辑模型';
+        saveBtn.textContent = '更新模型';
+        cancelBtn.style.display = 'inline-block';
+      }
+
+      function deleteModel(id) {
+        if (confirm('确定要删除这个模型吗？')) {
+          models = models.filter(m => m.id !== id);
+          saveModels(models);
+          renderTable();
+        }
+      }
+
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const id = idInput.value ? parseInt(idInput.value) : null;
+        const modelData = {
+          name: nameInput.value.trim(),
+          date: dateInput.value,
+          url: urlInput.value.trim(),
+          icon: iconInput.value.trim() || 'bi-box-seam'
+        };
+
+        if (id) {
+          const index = models.findIndex(m => m.id === id);
+          if (index !== -1) models[index] = { ...models[index], ...modelData };
+        } else {
+          const newId = models.length > 0 ? Math.max(...models.map(m => m.id)) + 1 : 1;
+          models.push({ id: newId, ...modelData });
+        }
+
+        saveModels(models);
+        renderTable();
+        resetForm();
+      });
+
+      cancelBtn.addEventListener('click', resetForm);
+
+      tbody.addEventListener('click', function(e) {
+        const editBtn = e.target.closest('.edit-btn');
+        const deleteBtn = e.target.closest('.delete-btn');
+        if (editBtn) editModel(parseInt(editBtn.dataset.id));
+        if (deleteBtn) deleteModel(parseInt(deleteBtn.dataset.id));
+      });
+
+      // 导出为 data.json
+      document.getElementById('exportBtn').addEventListener('click', function() {
+        const dataStr = JSON.stringify(models, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'data.json';
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+
+      // 导入功能
+      const importBtn = document.getElementById('importBtn');
+      const importFile = document.getElementById('importFileInput');
+      importBtn.addEventListener('click', function() {
+        importFile.click();
+      });
+      importFile.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+          try {
+            const imported = JSON.parse(ev.target.result);
+            if (!Array.isArray(imported)) throw new Error('数据格式错误');
+            if (confirm('导入将覆盖当前所有模型数据，确定继续吗？')) {
+              models = imported;
+              saveModels(models);
+              renderTable();
+              alert('导入成功！');
+            }
+          } catch (err) {
+            alert('导入失败：文件格式不正确');
+          }
+        };
+        reader.readAsText(file);
+        importFile.value = '';
+      });
+
+      renderTable();
+    })();
+  </script>
+</body>
+</html>
